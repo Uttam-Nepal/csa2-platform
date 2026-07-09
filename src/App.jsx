@@ -1066,7 +1066,6 @@ function Topbar({ setOpen, active }) {
   const { theme, toggle } = useContext(ThemeContext);
   const c = T[theme];
   const [notifOpen, setNotifOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const currentLabel =
     NAV_FLAT.find((n) => n.id === active)?.label || "Dashboard";
 
@@ -1131,10 +1130,7 @@ function Topbar({ setOpen, active }) {
 
         <div className="relative">
           <button
-            onClick={() => {
-              setNotifOpen((v) => !v);
-              setProfileOpen(false);
-            }}
+            onClick={() => setNotifOpen((v) => !v)}
             className="h-9 w-9 rounded-lg flex items-center justify-center relative transition-colors"
             style={{
               color: c.textMuted,
@@ -1195,83 +1191,6 @@ function Topbar({ setOpen, active }) {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="relative">
-          <button
-            onClick={() => {
-              setProfileOpen((v) => !v);
-              setNotifOpen(false);
-            }}
-            className="h-9 flex items-center gap-2 pl-1 pr-2.5 rounded-lg transition-colors"
-            style={{
-              background:
-                theme === "dark"
-                  ? "rgba(148,163,184,0.06)"
-                  : "rgba(15,23,42,0.04)",
-            }}
-          >
-            <div
-              className="h-7 w-7 rounded-md flex items-center justify-center text-[11px] font-bold text-white"
-              style={{ background: "linear-gradient(135deg,#3B82F6,#A78BFA)" }}
-            >
-              RA
-            </div>
-            <span
-              className="hidden sm:block text-[12.5px] font-medium"
-              style={{ color: c.text }}
-            >
-              Research Analyst
-            </span>
-            <ChevronDown size={13} style={{ color: c.textFaint }} />
-          </button>
-          {profileOpen && (
-            <div
-              className="absolute right-0 mt-2 w-56 rounded-xl overflow-hidden z-50"
-              style={{
-                background: c.panelSolid,
-                border: `1px solid ${c.borderStrong}`,
-                boxShadow: "0 20px 40px -12px rgba(0,0,0,0.5)",
-              }}
-            >
-              <div
-                className="px-4 py-3"
-                style={{ borderBottom: `1px solid ${c.border}` }}
-              >
-                <div
-                  className="text-[13px] font-semibold"
-                  style={{ color: c.text }}
-                >
-                  Research Analyst
-                </div>
-                <div className="text-[11px]" style={{ color: c.textFaint }}>
-                  analyst@research.local
-                </div>
-              </div>
-              {[
-                ["Settings", Settings],
-                ["Saved Views", Layers],
-                ["Bookmarks", BookOpen],
-              ].map(([label, Icon], i) => (
-                <button
-                  key={i}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] transition-colors"
-                  style={{ color: c.textMuted }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background =
-                      theme === "dark"
-                        ? "rgba(148,163,184,0.06)"
-                        : "rgba(15,23,42,0.04)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
-                >
-                  <Icon size={14} /> {label}
-                </button>
               ))}
             </div>
           )}
@@ -3267,7 +3186,7 @@ function buildRiskMatrixReport() {
 /* ============================================================================
    REPORTS
 ============================================================================ */
-function ReportsPage() {
+function ReportsPage({ setActive }) {
   const { theme } = useContext(ThemeContext);
   const c = T[theme];
   const reports = [
@@ -3366,13 +3285,19 @@ function ReportsPage() {
             CSET Assessment Report
           </h3>
           <p
-            className="text-[12.5px] leading-relaxed"
+            className="text-[12.5px] leading-relaxed mb-3"
             style={{ color: c.textMuted }}
           >
             This one is personalised to your configuration, so it's generated on
-            that page directly. Go to the <strong>CSET Assessment Tool</strong>{" "}
-            page and use its "Download This Assessment" button.
+            that page directly.
           </p>
+          <button
+            onClick={() => setActive("cset-sim")}
+            className="flex items-center gap-1.5 text-[12.5px] font-semibold"
+            style={{ color: ACCENT.emerald }}
+          >
+            <ArrowUpRight size={13} /> Go to CSET Assessment Tool
+          </button>
         </div>
       </Panel>
     </div>
@@ -3451,7 +3376,7 @@ export default function App() {
     recommendations: <RecommendationsPage />,
     "risk-matrix": <RiskMatrixPage />,
     "cset-sim": <CSETSimPage />,
-    reports: <ReportsPage />,
+    reports: <ReportsPage setActive={setActive} />,
     about: <AboutPage />,
   };
 
