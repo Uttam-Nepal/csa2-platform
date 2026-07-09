@@ -545,7 +545,7 @@ const TIMELINE = [
     ],
   },
   {
-    year: "19 March 2026",
+    year: "9 Apr 2026",
     title: "EDPB–EDPS Joint Opinion Published",
     status: "Regulatory Opinion",
     desc: "The European Data Protection Board and European Data Protection Supervisor welcome CSA2's objectives but call for greater clarity on its relationship with GDPR certification and data-transfer safeguards.",
@@ -1102,7 +1102,7 @@ function Topbar({ setOpen, active, setActive }) {
   const c = T[theme];
   const [notifOpen, setNotifOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const currentLabel =
     NAV_FLAT.find((n) => n.id === active)?.label || "Dashboard";
 
@@ -1116,7 +1116,7 @@ function Topbar({ setOpen, active, setActive }) {
   const goTo = (pageId) => {
     setActive(pageId);
     setQuery("");
-    setSearchFocused(false);
+    setDropdownOpen(false);
   };
 
   return (
@@ -1151,9 +1151,14 @@ function Topbar({ setOpen, active, setActive }) {
         />
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setSearchFocused(true)}
-          onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setDropdownOpen(e.target.value.trim().length > 0);
+          }}
+          onFocus={() => {
+            if (query.trim().length > 0) setDropdownOpen(true);
+          }}
+          onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
           placeholder="Search pages, gaps, risks, timeline, comparisons..."
           className="w-full pl-9 pr-3 py-2 rounded-lg text-[13px] outline-none transition-all focus:ring-2"
           style={{
@@ -1165,7 +1170,7 @@ function Topbar({ setOpen, active, setActive }) {
             color: c.text,
           }}
         />
-        {searchFocused && query.trim().length > 0 && (
+        {dropdownOpen && query.trim().length > 0 && (
           <div
             className="absolute left-0 right-0 mt-2 rounded-xl overflow-hidden z-50 max-h-80 overflow-y-auto"
             style={{
