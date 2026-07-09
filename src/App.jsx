@@ -545,7 +545,7 @@ const TIMELINE = [
     ],
   },
   {
-    year: "9 Apr 2026",
+    year: "19 March 2026",
     title: "EDPB–EDPS Joint Opinion Published",
     status: "Regulatory Opinion",
     desc: "The European Data Protection Board and European Data Protection Supervisor welcome CSA2's objectives but call for greater clarity on its relationship with GDPR certification and data-transfer safeguards.",
