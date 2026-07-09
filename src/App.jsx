@@ -922,6 +922,41 @@ const NAV = [
 ];
 const NAV_FLAT = NAV.flatMap((g) => g.items);
 
+// Global search index — combines pages and key content from across the platform.
+// Each entry navigates to its page when clicked.
+const SEARCH_INDEX = [
+  ...NAV_FLAT.map((item) => ({
+    label: item.label,
+    category: "Page",
+    pageId: item.id,
+    icon: item.icon,
+  })),
+  ...TIMELINE.map((t) => ({
+    label: `${t.year} — ${t.title}`,
+    category: "Legislative Timeline",
+    pageId: "timeline",
+    icon: Clock,
+  })),
+  ...GAP_RECOMMENDATIONS.map((g) => ({
+    label: `${g.gap} — ${g.title}`,
+    category: "Gap → Reform Explorer",
+    pageId: "recommendations",
+    icon: Target,
+  })),
+  ...RISK_ITEMS.map((r) => ({
+    label: r.name,
+    category: "Risk Matrix",
+    pageId: "risk-matrix",
+    icon: AlertTriangle,
+  })),
+  ...COMPARISON_ROWS.map((row) => ({
+    label: row.dim,
+    category: "Comparative Analysis",
+    pageId: "comparative",
+    icon: GitCompare,
+  })),
+];
+
 /* ============================================================================
    SIDEBAR
 ============================================================================ */
@@ -1062,12 +1097,27 @@ function Sidebar({ active, setActive, open, setOpen }) {
 /* ============================================================================
    TOPBAR
 ============================================================================ */
-function Topbar({ setOpen, active }) {
+function Topbar({ setOpen, active, setActive }) {
   const { theme, toggle } = useContext(ThemeContext);
   const c = T[theme];
   const [notifOpen, setNotifOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const currentLabel =
     NAV_FLAT.find((n) => n.id === active)?.label || "Dashboard";
+
+  const results =
+    query.trim().length > 0
+      ? SEARCH_INDEX.filter((r) =>
+          r.label.toLowerCase().includes(query.trim().toLowerCase()),
+        ).slice(0, 8)
+      : [];
+
+  const goTo = (pageId) => {
+    setActive(pageId);
+    setQuery("");
+    setSearchFocused(false);
+  };
 
   return (
     <header
@@ -1096,11 +1146,15 @@ function Topbar({ setOpen, active }) {
       <div className="flex-1 max-w-md ml-auto relative hidden sm:block">
         <Search
           size={15}
-          className="absolute left-3 top-1/2 -translate-y-1/2"
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-10"
           style={{ color: c.textFaint }}
         />
         <input
-          placeholder="Search policies, sectors, case studies..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
+          placeholder="Search pages, gaps, risks, timeline, comparisons..."
           className="w-full pl-9 pr-3 py-2 rounded-lg text-[13px] outline-none transition-all focus:ring-2"
           style={{
             background:
@@ -1111,6 +1165,77 @@ function Topbar({ setOpen, active }) {
             color: c.text,
           }}
         />
+        {searchFocused && query.trim().length > 0 && (
+          <div
+            className="absolute left-0 right-0 mt-2 rounded-xl overflow-hidden z-50 max-h-80 overflow-y-auto"
+            style={{
+              background: c.panelSolid,
+              border: `1px solid ${c.borderStrong}`,
+              boxShadow: "0 20px 40px -12px rgba(0,0,0,0.5)",
+            }}
+          >
+            {results.length === 0 ? (
+              <div
+                className="px-4 py-3 text-[12.5px]"
+                style={{ color: c.textFaint }}
+              >
+                No results for "{query}"
+              </div>
+            ) : (
+              results.map((r, i) => {
+                const Icon = r.icon;
+                return (
+                  <button
+                    key={i}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      goTo(r.pageId);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
+                    style={{
+                      borderBottom:
+                        i < results.length - 1
+                          ? `1px solid ${c.border}`
+                          : "none",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        theme === "dark"
+                          ? "rgba(148,163,184,0.06)"
+                          : "rgba(15,23,42,0.04)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    <Icon
+                      size={14}
+                      style={{ color: ACCENT.cyan }}
+                      className="shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <div
+                        className="text-[12.5px] truncate"
+                        style={{ color: c.text }}
+                      >
+                        {r.label}
+                      </div>
+                      <div
+                        className="text-[10px] tracking-wide"
+                        style={{
+                          color: c.textFaint,
+                          fontFamily: "'JetBrains Mono', monospace",
+                        }}
+                      >
+                        {r.category.toUpperCase()}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -3411,7 +3536,11 @@ export default function App() {
             setOpen={setSidebarOpen}
           />
           <div className="flex-1 min-w-0">
-            <Topbar setOpen={setSidebarOpen} active={active} />
+            <Topbar
+              setOpen={setSidebarOpen}
+              active={active}
+              setActive={setActive}
+            />
             <main className="p-4 md:p-8 max-w-[1400px] mx-auto">
               {pages[active]}
             </main>
