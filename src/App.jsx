@@ -3493,6 +3493,18 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const c = T[theme];
 
+  // Wrapping setActive: after switching pages, force a resize event once the
+  // new page has painted. This fixes Recharts' ResponsiveContainer sometimes
+  // measuring a 0-width container on mount when navigation happens alongside
+  // another layout change (e.g. the search dropdown closing), which otherwise
+  // left charts blank until the page was revisited.
+  const navigate = (id) => {
+    setActive(id);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+    });
+  };
+
   const pages = {
     dashboard: <DashboardPage />,
     "exec-summary": <ExecSummaryPage />,
@@ -3501,7 +3513,7 @@ export default function App() {
     recommendations: <RecommendationsPage />,
     "risk-matrix": <RiskMatrixPage />,
     "cset-sim": <CSETSimPage />,
-    reports: <ReportsPage setActive={setActive} />,
+    reports: <ReportsPage setActive={navigate} />,
     about: <AboutPage />,
   };
 
@@ -3531,7 +3543,7 @@ export default function App() {
         <div className="flex">
           <Sidebar
             active={active}
-            setActive={setActive}
+            setActive={navigate}
             open={sidebarOpen}
             setOpen={setSidebarOpen}
           />
@@ -3539,7 +3551,7 @@ export default function App() {
             <Topbar
               setOpen={setSidebarOpen}
               active={active}
-              setActive={setActive}
+              setActive={navigate}
             />
             <main className="p-4 md:p-8 max-w-[1400px] mx-auto">
               {pages[active]}
